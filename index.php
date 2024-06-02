@@ -1,14 +1,34 @@
 <?php
 
 include_once("./app/database/connect.php");
+// エラーの配列を定義
+$error_message = array();
 
 if(isset($_POST["submitButton"])){
-    $username=$_POST["username"];
-    var_dump($username);
-    $body=$_POST["body"];
-    var_dump($body);
-}
+    if(empty($_POST["username"])){
+        $error_message["username"]="お名前を入力してください";
+    }
+    if(empty($_POST["body"])){
+        $error_message["body"]="本文を入力してください";
+    }
+    if(empty($error_message)){
+        $post_date = date("Y-m-d H:i:s");
 
+        $sql = "INSERT INTO `comment` ( `username`, `body`, `post_date`) VALUES (:username, :body, :post_date);";
+        $statement=$pdo->prepare($sql);
+    
+        //値をセットする
+        $statement->bindParam(":username",$_POST["username"],PDO::PARAM_STR);
+        $statement->bindParam(":body",$_POST["body"],PDO::PARAM_STR);
+        $statement->bindParam(":post_date",$post_date,PDO::PARAM_STR);
+    
+        $statement->execute();
+    }
+
+
+
+}
+// コメントの配列を定義
 $comment_array=array();
 
 $sql ="SELECT * FROM comment";
@@ -35,6 +55,17 @@ $comment_array= $statement;
         <h1 class="title">2チャンネル掲示板</h1>
         <hr>
     </header>
+
+    <!-- バリデーションエラー表示 -->
+    <?php if(isset($error_message)) : ?>
+    <ul class="errorMessage">
+    <?php foreach($error_message as $error) :?>
+        <li><?php echo $error ?></li>
+        <?php endforeach; ?>
+    </ul>
+    <?php endif; ?>
+
+
 
     <div class="threadWrapper">
         <div class="childWrapper">
